@@ -1,0 +1,135 @@
+import boto3
+import base64
+import json
+from botocore.exceptions import ClientError
+import re
+
+DATA_BUCKET = "datasets-veda-aiml"
+MODEL_ID_LITE = "amazon.nova-lite-v1:0"
+MODEL_ID_PRO = "amazon.nova-pro-v1:0"
+MODEL_TO_TEST = MODEL_ID_PRO
+
+def get_pdf_from_s3(bucket_name, file_key):
+    """Retrieve PDF content from S3"""
+    try:
+        s3_client = boto3.client('s3')
+        response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
+        pdf_content = response['Body'].read()
+        return pdf_content
+    except ClientError as e:
+        print(f"Error retrieving file from S3: {e}")
+        raise
+
+def sanitize_filename(filename):
+    """
+    Sanitize filename to meet Nova requirements:
+    - Only alphanumeric characters, whitespace, hyphens, parentheses, and square brackets
+    - No consecutive whitespace characters
+    """
+    # Get just the filename from the path
+    filename = filename.split('/')[-1]
+    
+    # Replace invalid characters with hyphens
+    sanitized = re.sub(r'[^a-zA-Z0-9\s\-\(\)\[\]]', '-', filename)
+    
+    # Replace consecutive whitespace with single space
+    sanitized = re.sub(r'\s+', ' ', sanitized)
+    
+    return sanitized.strip()
+
+def invoke_nova_with_pdf(model_id, question, pdf_files=None, max_tokens=1000, temperature=0.7):
+    """
+    Invoke Nova model with PDF context and question
+    
+    Args:
+        model_id (str): Nova model ID (lite or pro)
+        question (str): Question to ask
+        pdf_files (list): List of dicts containing S3 bucket and key for PDFs
+        max_tokens (int): Maximum tokens in response
+        temperature (float): Temperature for response generation
+    """
+    try:
+        # Initialize Bedrock Runtime client
+        client = boto3.client('bedrock-runtime', region_name='us-east-1')
+        
+        # Prepare message content
+        content = []
+        
+        # Add PDF documents if provided
+        if pdf_files:
+            for pdf_file in pdf_files:
+                pdf_content = get_pdf_from_s3(pdf_file['bucket'], pdf_file['key'])
+                sanitized_name = sanitize_filename(pdf_file['key'])
+                content.append({
+                    "document": {
+                        "format": "pdf",
+                        "name": sanitized_name,
+                        "source": {
+                            "bytes": pdf_content
+                        }
+                    }
+                })
+        
+        # Add the question
+        content.append({"text": question})
+        
+        # Prepare the messages structure
+        messages = [{
+            "role": "user",
+            "content": content
+        }]
+        
+        # Configure inference parameters
+        inference_config = {
+            "maxTokens": max_tokens,
+            "temperature": temperature
+        }
+        
+        # Make the API call
+        response = client.converse(
+            modelId=model_id,
+            messages=messages,
+            inferenceConfig=inference_config
+        )
+        
+        # Extract and return the response text
+        return response['output']['message']['content'][0]['text']
+    
+    except ClientError as e:
+        print(f"Error invoking model: {e}")
+        raise
+
+def main():
+    # Example usage
+   
+    
+    # Example PDF files in S3
+    pdf_files = [
+        {
+            "bucket": DATA_BUCKET,
+            "key": "amazon-shareholder-letters/All Amazon Shareholder Letters-1997.pdf"
+        }
+    ]
+    
+    question = """What are the key points discussed in these documents? 
+       Remember to add citations to your response using markers
+       like %[1]%, %[2]%, %[3]%, etc for the corresponding passage supports the response"""
+    
+    try:
+        # Invoke with Nova Lite
+        response = invoke_nova_with_pdf(
+            model_id=MODEL_TO_TEST,
+            question=question,
+            pdf_files=pdf_files,
+            max_tokens=1500,
+            temperature=0.5
+        )
+        
+        print("Nova Response:")
+        print(response)
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+if __name__ == "__main__":
+    main()
