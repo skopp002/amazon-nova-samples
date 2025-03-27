@@ -76,67 +76,6 @@ def sanitize_filename(filename):
     
     return sanitized.strip()
 
-# def invoke_nova_with_pdf(model_id, question, pdf_files=None, max_tokens=1000, temperature=0.7):
-#     """
-#     Invoke Nova model with PDF context and question
-    
-#     Args:
-#         model_id (str): Nova model ID (lite or pro)
-#         question (str): Question to ask
-#         pdf_files (list): List of dicts containing S3 bucket and key for PDFs
-#         max_tokens (int): Maximum tokens in response
-#         temperature (float): Temperature for response generation
-#     """
-#     try:
-#         # Initialize Bedrock Runtime client
-#         client = boto3.client('bedrock-runtime', region_name='us-east-1')
-        
-#         # Prepare message content
-#         content = []
-        
-#         # Add PDF documents if provided
-#         if pdf_files:
-#             for pdf_file in pdf_files:
-#                 pdf_content = get_pdf_from_s3(pdf_file['bucket'], pdf_file['key'])
-#                 sanitized_name = sanitize_filename(pdf_file['key'])
-#                 content.append({
-#                     "document": {
-#                         "format": "pdf",
-#                         "name": sanitized_name,
-#                         "source": {
-#                             "bytes": pdf_content
-#                         }
-#                     }
-#                 })
-        
-#         # Add the question
-#         content.append({"text": question})
-        
-#         # Prepare the messages structure
-#         messages = [{
-#             "role": "user",
-#             "content": content
-#         }]
-        
-#         # Configure inference parameters
-#         inference_config = {
-#             "maxTokens": max_tokens,
-#             "temperature": temperature
-#         }
-        
-#         # Make the API call
-#         response = client.converse(
-#             modelId=model_id,
-#             messages=messages,
-#             inferenceConfig=inference_config
-#         )
-        
-#         # Extract and return the response text
-#         return response['output']['message']['content'][0]['text']
-    
-#     except ClientError as e:
-#         print(f"Error invoking model: {e}")
-#         raise
 
 def invoke_nova_with_pdf(model_id, question, pdf_files=None, max_tokens=1000, temperature=0.7):
     """
