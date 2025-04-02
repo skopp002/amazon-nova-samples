@@ -203,8 +203,8 @@ def main():
             model_id=MODEL_TO_TEST,
             question=question,
             pdf_files=pdf_files,
-            max_tokens=1500,
-            temperature=0.5
+            max_tokens=1500, #2000 causes Attempt 4 failed with error: Too many tokens, please wait before trying again. Retrying in 8.18 seconds...
+            temperature=0.7
         )
         
         print("Nova Response:")
@@ -215,3 +215,17 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+## Below is a response for Nova Pro with given S3 URI
+    """
+    Nova Response:
+THOUGHT PROCESS:
+I'm looking for the business model that enabled Amazon to reach billion dollar scale.
+
+ANALYSIS:
+The document mentions several key business models that have contributed to Amazon's growth and scale. These include Marketplace, Prime, and Amazon Web Services (AWS). Marketplace allows third-party sellers to compete against Amazon's own category managers, driving customer experience improvements and higher sales %[1]%. Prime offers benefits like fast shipping and streaming services, creating a flywheel effect where benefits for customers lead to increased membership and sales %[2]%. AWS provides cloud computing services to a wide range of customers, from startups to large enterprises, and has seen rapid growth and adoption %[3]%.
+
+FINAL ANSWER:
+The business models that enabled Amazon to reach billion dollar scale are Marketplace, Prime, and Amazon Web Services (AWS) %[1]%%[2]%%[3]%.
+    """
