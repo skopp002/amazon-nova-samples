@@ -113,30 +113,17 @@ def invoke_nova_with_pdf(model_id, question, pdf_files=None, max_tokens=1000, te
         # Add the question with trace instructions
         trace_question = f"""
         {question}
-        
-        Please show your thinking process using these steps:
-        1. First, explain what information you're looking for
-        2. Then, describe which parts of the documents you're analyzing
-        3. Finally, provide your answer with citations
-        
-        Format your response as:
-        THOUGHT PROCESS:
-        [Your step-by-step thinking]
-        
-        ANALYSIS:
-        [Your document analysis]
-        
-        FINAL ANSWER:
-        [Your answer with citations]
         """
         
         content.append({"text": trace_question})
         
         # Prepare the messages structure
-        messages = [{
+        messages = [
+            {
             "role": "user",
             "content": content
-        }]
+        }
+            ]
         
         # Configure inference parameters
         inference_config = {
@@ -168,33 +155,30 @@ def main():
     pdf_files = [
         {
             "bucket": DATA_BUCKET,
-            "key": "amazon-shareholder-letters/All Amazon Shareholder Letters.pdf"#"amazon-shareholder-letters/All Amazon Shareholder Letters-1997.pdf"
+            "key": "amazon-shareholder-letters/All Amazon Shareholder Letters-1997.pdf" #All Amazon Shareholder Letters.pdf"#""
         }
     ]
     
-    question = """What is the business model that enabled amazon to reach billion dollar scale? 
-       Remember to add citations to your response using markers
-       like %[1]%, %[2]%, %[3]%, etc for the corresponding passage supports the response"""
+    # question = """What is the business model that enabled amazon to reach billion dollar scale? 
+    #    Remember to add citations to your response using markers
+    #    like %[1]%, %[2]%, %[3]%, etc for the corresponding passage supports the response"""
          # Add the question with trace instructions
-    
-    trace_question = f"""
-            {question}
-            
-            Please show your thinking process using these steps:
-            1. First, explain what information you're looking for
-            2. Then, describe which parts of the documents you're analyzing
-            3. Finally, provide your answer with citations
-            
-            Format your response as:
-            THOUGHT PROCESS:
-            [Your step-by-step thinking]
-            
-            ANALYSIS:
-            [Your document analysis]
-            
-            FINAL ANSWER:
-            [Your answer with citations]
-            """
+    question="""You are a QA agent. You answer questions based on the context provided. You will answer teh question and also include exact excerpts from the context and quote them as quotes.
+                ##Examples:
+                Question: What factors contributed to the growth of Amazon
+                Quotes: [1] Our
+                vision for Kindle is every book ever printed in any language, all available in less than 60 seconds.
+                Publishers—including all the major publishers—have embraced Kindle, and we’re thankful for that. From a
+                publisher’s point of view, there are a lot of advantages to Kindle. Books never go out of print, and they never go
+                out of stock. Nor is there ever waste from over-printing. Most important, Kindle makes it more convenient for
+                readers to buy more books. Anytime you make something simpler and lower friction, you get more of it.
+                Answer: Inovation with Kindle and publisher collaboration contributed to the growth of Amazon [1]
+                ##Output Format
+                Quotes: [1] ....
+                [2] ...
+                Answer:"""
+    trace_question = f"""{question} What contributed to net sales and decline of stock price? """
+        #Extra instructions if needed   
             
     content.append({"text": trace_question})
     try:
@@ -203,7 +187,7 @@ def main():
             model_id=MODEL_TO_TEST,
             question=question,
             pdf_files=pdf_files,
-            max_tokens=1500, #2000 causes Attempt 4 failed with error: Too many tokens, please wait before trying again. Retrying in 8.18 seconds...
+            max_tokens=2000, #2000 causes Attempt 4 failed with error: Too many tokens, please wait before trying again. Retrying in 8.18 seconds...
             temperature=0.7
         )
         

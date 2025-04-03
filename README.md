@@ -91,3 +91,39 @@ For open source projects, say how it is licensed.
 
 ## Project status
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+
+
+
+Extra instructions
+ """Please show your thinking process using these steps:
+            1. First, explain what information you're looking for
+            2. Then, describe which parts of the documents you're analyzing
+            3. Finally, provide your answer with citations
+            
+            Format your response as:
+            THOUGHT PROCESS:
+            [Your step-by-step thinking]
+            
+            ANALYSIS:
+            [Your document analysis]
+            
+            FINAL ANSWER:
+            [Your answer with citations]
+            """
+
+
+               
+        Please show your thinking process using these steps:
+        1. First, explain what information you're looking for
+        2. Then, describe which parts of the documents you're analyzing
+        3. Finally, provide your answer with citations and excerpts
+        
+        Format your response as:
+        THOUGHT PROCESS:
+        [Your step-by-step thinking]
+        
+        ANALYSIS:
+        [Your document analysis]
+        
+        FINAL ANSWER:
+        [Your answer with citations]
