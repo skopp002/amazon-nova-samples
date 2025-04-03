@@ -111,9 +111,22 @@ def invoke_nova_with_pdf(model_id, question, pdf_files=None, max_tokens=1000, te
                 })
         
         # Add the question with trace instructions
-        trace_question = f"""
-        {question}
-        """
+        #trace_question = f"""Please show your thinking process using these steps:
+        #     1. First, explain what information you're looking for
+        #     2. Then, describe which parts of the documents you're analyzing
+        #     3. Finally, provide your answer with citations
+            
+        #     Format your response as:
+        #     THOUGHT PROCESS:
+        #     [Your step-by-step thinking]
+            
+        #     ANALYSIS:
+        #     [Your document analysis]
+            
+        #     FINAL ANSWER:
+        #     [Your answer with citations]
+        #     {question}"""
+        trace_question = f"""{question}"""
         
         content.append({"text": trace_question})
         
@@ -147,10 +160,7 @@ def invoke_nova_with_pdf(model_id, question, pdf_files=None, max_tokens=1000, te
         raise
 
 def main():
-    # Example usage
-   # Prepare message content
-    content = []
-    
+      
     # Example PDF files in S3
     pdf_files = [
         {
@@ -177,15 +187,14 @@ def main():
                 Quotes: [1] ....
                 [2] ...
                 Answer:"""
-    trace_question = f"""{question} What contributed to net sales and decline of stock price? """
+    question_with_template = f"""{question} What contributed to net sales and decline of stock price? """
         #Extra instructions if needed   
-            
-    content.append({"text": trace_question})
+
     try:
         # Invoke with Nova Lite
         response = invoke_nova_with_pdf(
             model_id=MODEL_TO_TEST,
-            question=trace_question,
+            question=question_with_template,
             pdf_files=pdf_files,
             max_tokens=2000, #2000 causes Attempt 4 failed with error: Too many tokens, please wait before trying again. Retrying in 8.18 seconds...
             temperature=0.7
@@ -202,14 +211,10 @@ if __name__ == "__main__":
 
 
 ## Below is a response for Nova Pro with given S3 URI
-    """
-    Nova Response:
-THOUGHT PROCESS:
-I'm looking for the business model that enabled Amazon to reach billion dollar scale.
+"""
+Nova Response:
+Quotes: [1] Sales grew from $15.7 million in 1996 to $147.8 million -- an 838% increase.
 
-ANALYSIS:
-The document mentions several key business models that have contributed to Amazon's growth and scale. These include Marketplace, Prime, and Amazon Web Services (AWS). Marketplace allows third-party sellers to compete against Amazon's own category managers, driving customer experience improvements and higher sales %[1]%. Prime offers benefits like fast shipping and streaming services, creating a flywheel effect where benefits for customers lead to increased membership and sales %[2]%. AWS provides cloud computing services to a wide range of customers, from startups to large enterprises, and has seen rapid growth and adoption %[3]%.
+[2] We aren't so bold as to claim that the above is the "right" investment philosophy, but it's ours, and we would be remiss if we weren't clear in the approach we have taken and will continue to take.
 
-FINAL ANSWER:
-The business models that enabled Amazon to reach billion dollar scale are Marketplace, Prime, and Amazon Web Services (AWS) %[1]%%[2]%%[3]%.
-    """
+Answer: The growth in net sales was driven by the significant increase in sales from $15.7 million in 1996 to $147.8 million in 1997, representing an 838% increase [1]. However, the document does not explicitly mention a decline in stock price, but it does outline the company's investment philosophy, which may have implications for stock performance [2]."""
