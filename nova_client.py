@@ -185,7 +185,7 @@ def main():
         # Invoke with Nova Lite
         response = invoke_nova_with_pdf(
             model_id=MODEL_TO_TEST,
-            question=question,
+            question=trace_question,
             pdf_files=pdf_files,
             max_tokens=2000, #2000 causes Attempt 4 failed with error: Too many tokens, please wait before trying again. Retrying in 8.18 seconds...
             temperature=0.7
