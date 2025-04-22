@@ -8,12 +8,17 @@ from nova_client import invoke_nova_with_pdf
 import boto3
 import time
 
+'''
+Evaluation of Nova Citations efficiency using invoke_model API 
+'''
+
 DATA_BUCKET = "datasets-veda-aiml"
 MODEL_ID_LITE = "amazon.nova-lite-v1:0"
 MODEL_ID_PRO = "amazon.nova-pro-v1:0"
 MODEL_TO_TEST = MODEL_ID_PRO
 CLAUDE_MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
 AWS_DEFAULT_REGION = "us-east-1"
+EVAL_DATASET = "eval_single_prompt_dataset.jsonl"
 
 def invoke_claude(prompt):
     """Invoke Claude model using Bedrock"""
@@ -217,7 +222,7 @@ def analyze_evaluation_results(results):
 
 def main():
     # Configuration
-    eval_dataset_path = 'eval_dataset.jsonl'
+    eval_dataset_path = EVAL_DATASET
     output_file = f'evaluation_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
     
     # PDF files configuration
