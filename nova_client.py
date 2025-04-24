@@ -5,9 +5,9 @@ from botocore.exceptions import ClientError
 import re
 import time
 import random
+import os
 
-
-DATA_BUCKET = "datasets-veda-aiml"
+DATA_BUCKET = os.environ.get('DATA_BUCKET')
 MODEL_ID_LITE = "amazon.nova-lite-v1:0"
 MODEL_ID_PRO = "amazon.nova-pro-v1:0"
 MODEL_TO_TEST = MODEL_ID_PRO
@@ -109,23 +109,6 @@ def invoke_nova_with_pdf(model_id, question, pdf_files=None, max_tokens=1000, te
                         }
                     }
                 })
-        
-        # Add the question with trace instructions
-        #trace_question = f"""Please show your thinking process using these steps:
-        #     1. First, explain what information you're looking for
-        #     2. Then, describe which parts of the documents you're analyzing
-        #     3. Finally, provide your answer with citations
-            
-        #     Format your response as:
-        #     THOUGHT PROCESS:
-        #     [Your step-by-step thinking]
-            
-        #     ANALYSIS:
-        #     [Your document analysis]
-            
-        #     FINAL ANSWER:
-        #     [Your answer with citations]
-        #     {question}"""
         trace_question = f"""{question}"""
         
         content.append({"text": trace_question})
@@ -169,10 +152,6 @@ def main():
         }
     ]
     
-    # question = """What is the business model that enabled amazon to reach billion dollar scale? 
-    #    Remember to add citations to your response using markers
-    #    like %[1]%, %[2]%, %[3]%, etc for the corresponding passage supports the response"""
-         # Add the question with trace instructions
     question="""You are a QA agent. You answer questions based on the context provided. You will answer teh question and also include exact excerpts from the context and quote them as quotes.
                 ##Examples:
                 Question: What factors contributed to the growth of Amazon
