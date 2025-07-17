@@ -6,6 +6,7 @@ import re
 import time
 import random
 import os
+from botocore.config import Config
 
 DATA_BUCKET = os.environ.get('DATA_BUCKET')
 MODEL_ID_LITE = "amazon.nova-lite-v1:0"
@@ -23,41 +24,7 @@ def get_pdf_from_s3(bucket_name, file_key):
         print(f"Error retrieving file from S3: {e}")
         raise
     
-def invoke_with_retry(client, **kwargs):
-    """
-    Helper function to retry API calls with exponential backoff
-    """
-    max_retries = 5
-    base_delay = 1
-    max_delay = 32
-    
-    for attempt in range(max_retries):
-        try:
-            return client.converse(**kwargs)
-        
-        except ClientError as e:
-            error_code = e.response.get('Error', {}).get('Code', '')
-            error_message = e.response.get('Error', {}).get('Message', str(e))
-            
-            # Check if error is retryable
-            if error_code in ['ModelErrorException', 'ThrottlingException', 'ServiceUnavailable']:
-                if attempt == max_retries - 1:  # Last attempt
-                    print(f"Max retries reached. Last error: {error_message}")
-                    raise
-                
-                # Calculate delay with exponential backoff and jitter
-                delay = min(max_delay, (2 ** attempt + random.uniform(0, 1)) * base_delay)
-                print(f"Attempt {attempt + 1} failed with error: {error_message}")
-                print(f"Retrying in {delay:.2f} seconds...")
-                time.sleep(delay)
-                continue
-            else:
-                # Non-retryable error
-                print(f"Non-retryable error encountered: {error_message}")
-                raise
-        except Exception as e:
-            print(f"Unexpected error: {str(e)}")
-            raise
+# Using boto3's built-in retry mechanism
 
 def sanitize_filename(filename):
     """
@@ -89,8 +56,16 @@ def invoke_nova_with_pdf(model_id, question, pdf_files=None, max_tokens=1000, te
         temperature (float): Temperature for response generation
     """
     try:
-        # Initialize Bedrock Runtime client
-        client = boto3.client('bedrock-runtime', region_name='us-east-1')
+        # Initialize Bedrock Runtime client with retry configuration
+        retry_config = Config(
+            region_name='us-east-1',
+            retries={
+                'max_attempts': 5,
+                'mode': 'adaptive',  # Uses exponential backoff with jitter
+                'total_max_attempts': 5
+            }
+        )
+        client = boto3.client('bedrock-runtime', config=retry_config)
         
         # Prepare message content
         content = []
@@ -127,9 +102,8 @@ def invoke_nova_with_pdf(model_id, question, pdf_files=None, max_tokens=1000, te
             "temperature": temperature
         }
         
-        # Make the API call with retry mechanism
-        response = invoke_with_retry(
-            client,
+        # Make the API call (retries handled by boto3 config)
+        response = client.converse(
             modelId=model_id,
             messages=messages,
             inferenceConfig=inference_config
